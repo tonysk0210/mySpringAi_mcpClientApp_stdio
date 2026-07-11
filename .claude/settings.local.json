@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\IdeaProjects\\\\mySpringAi_mcpClientApp_stdio\" -Recurse -Filter \".git\" -Force)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\IdeaProjects\\\\mySpringAi_mcpClientApp_stdio\" -Force -Depth 2 | Where-Object { $_.Name -eq \".git\" } | Select-Object FullName)"
+    ]
+  }
+}

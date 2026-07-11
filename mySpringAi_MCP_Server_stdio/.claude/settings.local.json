@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /d \"D:\\\\IdeaProjects\\\\mySpringAi_MCP_Server_stdio\")",
+      "Bash(Get-ChildItem -Force)",
+      "Bash(Select-Object -Property Name, PSIsContainer)",
+      "Skill(explain)",
+      "Skill(find-docs)",
+      "Bash(npx ctx7@latest library \"Spring AI\" \"@McpTool annotation returnDirect MCP server tool properties\")",
+      "Bash(npx ctx7@latest docs /websites/spring_io_spring-ai_2_0_0 \"@McpTool annotation properties returnDirect MCP server tool\")",
+      "Bash(git rm *)",
+      "Bash(git add *)"
+    ]
+  }
+}

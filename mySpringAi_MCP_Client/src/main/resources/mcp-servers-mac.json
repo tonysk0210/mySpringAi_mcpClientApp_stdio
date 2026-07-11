@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/anthonyshangkuan/Desktop/mymcp"
+      ]
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ]
+    },
+    "helpdesk-ticket-mcp-server-stdio": {
+      "command": "java",
+      "args": [
+        "-jar",
+        "./mcp-server-stdio/mySpringAi_MCP_Server_stdio-0.0.1-SNAPSHOT.jar"
+      ]
+    }
+  }
+}
