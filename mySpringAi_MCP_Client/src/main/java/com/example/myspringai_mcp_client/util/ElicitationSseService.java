@@ -1,6 +1,7 @@
 package com.example.myspringai_mcp_client.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -86,5 +87,28 @@ public class ElicitationSseService {
         * */
         emitters.removeAll(dead);
         log.info("Elicitation 事件已推送給 {} 個前端連線", emitters.size() - dead.size());
+    }
+
+    /**
+     * 每 15 秒送一次 SSE comment 心跳。
+     * 目的有二：
+     * 1. 偵測死連線：send() 對已斷線的 emitter 拋 IOException → 立刻清除，不必等下次 push()
+     * 2. 保活：防止 NAT / proxy 因連線閒置過久主動切斷
+     */
+    @Scheduled(fixedDelay = 15_000)
+    public void sendHeartbeat() {
+        if (emitters.isEmpty()) return;
+        List<SseEmitter> dead = new ArrayList<>();
+        for (SseEmitter emitter : emitters) {
+            try {
+                emitter.send(SseEmitter.event().comment("heartbeat"));
+            } catch (IOException e) {
+                dead.add(emitter);
+            }
+        }
+        emitters.removeAll(dead);
+        if (!dead.isEmpty()) {
+            log.info("心跳清除 {} 個死連線，剩餘：{}", dead.size(), emitters.size());
+        }
     }
 }

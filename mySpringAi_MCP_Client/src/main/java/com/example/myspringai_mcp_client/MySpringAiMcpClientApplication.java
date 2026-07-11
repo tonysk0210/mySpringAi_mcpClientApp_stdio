@@ -2,8 +2,10 @@ package com.example.myspringai_mcp_client;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class MySpringAiMcpClientApplication {
 
     public static void main(String[] args) {
