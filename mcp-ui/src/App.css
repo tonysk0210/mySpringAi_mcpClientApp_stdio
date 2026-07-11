@@ -197,8 +197,14 @@ body {
   word-break: break-word;
 }
 
-.bubble p.msg-bold {
+.bubble p.msg-warning {
   font-weight: 600;
+  color: #b45309;
+}
+
+.bubble p.msg-success {
+  font-weight: 600;
+  color: #15803d;
 }
 
 /* Loading dots */
