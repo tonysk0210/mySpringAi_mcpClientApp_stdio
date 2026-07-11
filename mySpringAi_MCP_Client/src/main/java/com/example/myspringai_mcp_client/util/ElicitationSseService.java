@@ -108,7 +108,7 @@ public class ElicitationSseService {
         }
         emitters.removeAll(dead);
         if (!dead.isEmpty()) {
-            log.info("心跳清除 {} 個死連線，剩餘：{}", dead.size(), emitters.size());
+            log.info("心跳清除 {} 個 SSE 死連線，剩餘：{}", dead.size(), emitters.size());
         }
     }
 }

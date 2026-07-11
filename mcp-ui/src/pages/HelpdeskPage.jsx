@@ -16,15 +16,35 @@ export default function HelpdeskPage() {
     es.addEventListener('elicitation', e => {
       try {
         const { prompt } = JSON.parse(e.data)
-        setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ ' + prompt }])
+        setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ ' + prompt, bold: true }])
       } catch {
-        setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ ' + e.data }])
+        setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ ' + e.data, bold: true }])
       }
       setIsEliciting(true)
     })
 
     return () => es.close()
   }, [])
+
+  async function handleCancel() {
+    if (!isEliciting) return
+    setIsEliciting(false)
+    setMessages(prev => [...prev, { role: 'user', content: '（取消提供補充資料，請使用預設值）' }])
+    try {
+      const res = await fetch('/api/helpdesk/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', username },
+        body: JSON.stringify({ message: '使用者取消，不提供補充資料，請以預設值建立工單。' }),
+      })
+      const rawText = await res.text()
+      console.log('[Helpdesk cancel] status:', res.status, '| reply:', rawText)
+      const reply = rawText.trim() || '（收到空回應）'
+      setMessages(prev => [...prev, { role: 'assistant', content: reply, bold: reply.startsWith('✅') }])
+    } catch (e) {
+      console.error('[Helpdesk cancel] fetch error:', e)
+      setMessages(prev => [...prev, { role: 'assistant', content: '❌ 取消時發生錯誤。' }])
+    }
+  }
 
   async function handleSend(text) {
     if (!username) return
@@ -42,7 +62,7 @@ export default function HelpdeskPage() {
         const rawText = await res.text()
         console.log('[Helpdesk elicitation] status:', res.status, '| reply:', rawText)
         const reply = rawText.trim() || '（收到空回應）'
-        setMessages(prev => [...prev, { role: 'assistant', content: reply }])
+        setMessages(prev => [...prev, { role: 'assistant', content: reply, bold: reply.startsWith('✅') }])
       } catch (e) {
         console.error('[Helpdesk elicitation] fetch error:', e)
         setMessages(prev => [...prev, { role: 'assistant', content: '❌ 傳送補充資料時發生錯誤。' }])
@@ -88,6 +108,7 @@ export default function HelpdeskPage() {
       <ChatBox
         messages={messages}
         onSend={handleSend}
+        onCancel={handleCancel}
         isLoading={isLoading}
         allowSendWhileLoading={isEliciting}
         disabled={!username}

@@ -197,6 +197,10 @@ body {
   word-break: break-word;
 }
 
+.bubble p.msg-bold {
+  font-weight: 600;
+}
+
 /* Loading dots */
 .bubble.loading {
   display: flex;
@@ -280,4 +284,23 @@ body {
 .chatbox-send:disabled {
   background: #94a3b8;
   cursor: not-allowed;
+}
+
+.chatbox-cancel {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  flex-shrink: 0;
+}
+
+.chatbox-cancel:hover {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
 }
