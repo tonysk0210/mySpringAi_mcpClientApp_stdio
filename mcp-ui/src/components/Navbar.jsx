@@ -42,7 +42,7 @@ export default function Navbar() {
             isActive ? "nav-link active" : "nav-link"
           }
         >
-          AI 智能工單系統 dmeo
+          AI 智能工單系統 demo
         </NavLink>
         <NavLink
           to="/mcp-chat"
