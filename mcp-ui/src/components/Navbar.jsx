@@ -37,7 +37,7 @@ export default function Navbar() {
 
       <div className="navbar-links">
         <NavLink
-          to="/helpdesk"
+          to="/helpdesk-chat"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
@@ -45,12 +45,20 @@ export default function Navbar() {
           智能工單系統 demo
         </NavLink>
         <NavLink
-          to="/mcp-chat"
+          to="/filesystem-chat"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
         >
-          串接 MCP 工具 demo
+          FileSystem 工具 demo
+        </NavLink>
+        <NavLink
+          to="/github-chat"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          GitHub 工具 demo
         </NavLink>
       </div>
 

@@ -26,7 +26,7 @@ import java.util.UUID;
 
 /**
  * Helpdesk MCP 端點，僅提供 helpdesk-ticket-mcp-server-stdio 的工具。
- * filesystem / GitHub 相關功能由 {@link McpClientController} 負責。
+ * filesystem 相關功能由 {@link FileSystemMcpController} 負責，GitHub 相關功能由 {@link GithubMcpController} 負責。
  * <p>
  * 包含 elicitation 機制：當 MCP server 在 tool 執行中途需要補充資訊時，
  * 透過 SSE 把問題推給前端，使用者回覆後再由此 controller 解析並喚醒阻塞的 thread。
@@ -34,7 +34,7 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequestMapping("/api/helpdesk")
-public class McpHelpdeskController {
+public class HelpDeskController {
 
     private final ChatClient chatClient;
 
@@ -44,8 +44,8 @@ public class McpHelpdeskController {
 
     private final PrettyLoggerAdvisor prettyLoggerAdvisor = new PrettyLoggerAdvisor();
 
-    // 此 controller 專屬的記憶體，與 McpClientController 的 chatMemory 完全隔離。
-    // 即使前端傳入相同的 conversationId，兩個 controller 查的是不同的 store，不會互相汙染。
+    // 此 controller 專屬的記憶體。
+    // 即使前端傳入相同的 conversationId，各 controller 查的是不同的 store，不會互相汙染。
     private final ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
 
     // helpdesk tools，啟動時查詢一次並快取，與其他 controller 的 tools 完全獨立。
@@ -55,11 +55,11 @@ public class McpHelpdeskController {
     private final ElicitationSseService elicitationSseService;
 
     @Autowired
-    public McpHelpdeskController(ChatClient.Builder chatClientBuilder,
-                                 ChatClient.Builder parserClientBuilder,
-                                 List<McpSyncClient> mcpClients,
-                                 ElicitationSessionStore elicitationSessionStore,
-                                 ElicitationSseService elicitationSseService) {
+    public HelpDeskController(ChatClient.Builder chatClientBuilder,
+                              ChatClient.Builder parserClientBuilder,
+                              List<McpSyncClient> mcpClients,
+                              ElicitationSessionStore elicitationSessionStore,
+                              ElicitationSseService elicitationSseService) {
 
         // 使用 server 在 MCP 協定層回報的實際名稱（getServerInfo().name() = "mySpringAi_MCP_Server_stdio"）做比對，
         // 注意：這個名稱來自 server 本身的 spring.application.name，不是 application.properties 的 connection key。

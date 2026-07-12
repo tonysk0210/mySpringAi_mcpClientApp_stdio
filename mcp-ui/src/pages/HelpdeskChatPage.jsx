@@ -10,7 +10,7 @@ import client from "../api/client";
  * 3. 管理 elicitation（補充資料）的特殊流程
  */
 
-export default function HelpdeskPage() {
+export default function HelpdeskChatPage() {
   const { username } = useUsername(); // 從 Context 取得目前的使用者名稱
   const [messages, setMessages] = useState(() => [
     {
@@ -319,7 +319,7 @@ export default function HelpdeskPage() {
     <div className="page">
       <div className="page-header">
         <div className="page-header-row">
-          <h2>智能工單系統 - stdio</h2>
+          <h2>智能工單系統 MCP Server - stdio</h2>
           <SseStatusBadge status={sseStatus} />
         </div>
         <p>描述您遇到的技術問題，AI 將協助排障或建立工單。</p>

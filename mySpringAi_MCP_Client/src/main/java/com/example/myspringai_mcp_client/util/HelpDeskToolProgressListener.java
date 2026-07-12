@@ -46,7 +46,7 @@ public class HelpDeskToolProgressListener {
 }
 
 /*
-  Client 端（McpClientController）
+  Client 端（HelpDeskController）
   ────────────────────────────────────────────────────────────────
   chatClient.prompt()
       .toolContext(Map.of("progressToken", "abc-123"))  // ← 產生一個 UUID 作為 token

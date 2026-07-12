@@ -3,17 +3,15 @@ import ChatBox from "../components/ChatBox";
 import { useUsername } from "../context/UsernameContext";
 import client from "../api/client";
 
-export default function McpChatPage() {
+export default function FileSystemChatPage() {
   const { username } = useUsername();
   const [messages, setMessages] = useState(() => [
     {
       role: "assistant",
       content:
-        "嗨！我是 MCP 工具操作助理 👋\n\n" +
-        "只要用自然語言告訴我想做的事，我可以幫您：\n" +
-        "• 操作檔案系統，例如列出、讀取指定目錄的檔案\n" +
-        "• 操作 GitHub，例如查詢 repository、issue、commit 等\n\n" +
-        "有任何想試試的動作，直接說出來就可以，我們開始吧！",
+        "嗨！我是 FileSystem MCP 工具助理 👋 \n\n" +
+        "基於測試與安全考量，目前我只支援存取桌面上的 mymcp 資料夾，可協助您列出目錄、讀取檔案、搜尋檔案或寫入檔案；目前不提供「刪除」功能。\n\n" +
+        "請直接輸入要在 桌面 mymcp 資料夾內執行的檔案操作。",
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,12 +23,12 @@ export default function McpChatPage() {
 
     try {
       const { data } = await client.post(
-        "/chat",
+        "/filesystem/chat",
         { message: text },
         { headers: { username } },
       );
       const reply = (data ?? "").toString().trim();
-      console.log("[MCP Chat] reply:", reply);
+      console.log("[FileSystem Chat] reply:", reply);
       setMessages((prev) => [
         ...prev,
         {
@@ -41,7 +39,7 @@ export default function McpChatPage() {
         },
       ]);
     } catch (e) {
-      console.error("[MCP Chat] error:", e);
+      console.error("[FileSystem Chat] error:", e);
       const content = e.response
         ? `❌ 伺服器錯誤 (${e.response.status})：${e.response.data || "無詳細資訊"}`
         : "❌ 連線錯誤，請確認後端服務是否啟動。";
@@ -54,8 +52,8 @@ export default function McpChatPage() {
   return (
     <div className="page">
       <div className="page-header">
-        <h2>MCP Chat - stdio</h2>
-        <p>透過 AI 操作 FileSystem 與 GitHub 工具。</p>
+        <h2>FileSystem MCP Server - stdio</h2>
+        <p>透過 AI 操作本機 FileSystem 工具。</p>
       </div>
       {!username && (
         <div className="page-warning">
@@ -67,7 +65,7 @@ export default function McpChatPage() {
         onSend={handleSend}
         isLoading={isLoading}
         disabled={!username}
-        placeholder="輸入指令，例如：列出 /tmp 下的檔案..."
+        placeholder="輸入指令，例如：列出桌面 mymcp 資料夾下的檔案..."
       />
     </div>
   );

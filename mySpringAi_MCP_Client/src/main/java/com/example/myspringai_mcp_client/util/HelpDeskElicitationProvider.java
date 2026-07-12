@@ -36,7 +36,7 @@ import java.util.concurrent.TimeoutException;
  *     └─ 3. CompletableFuture.get()：阻塞此 thread，等待使用者在聊天框輸入
  *                     │
  *                     │  使用者看到提示後，在聊天框輸入補充資料並送出
- *                     │  POST /api/helpdesk/chat → McpHelpdeskController.handleElicitationChatResponse()
+ *                     │  POST /api/helpdesk/chat → HelpDeskController.handleElicitationChatResponse()
  *                     │  用 LLM 解析使用者輸入 → ElicitationSessionStore.complete()
  *                     ▼
  *     CompletableFuture 解除阻塞，取得解析好的資料 Map
@@ -45,7 +45,7 @@ import java.util.concurrent.TimeoutException;
  * Server 收到資料，繼續完成 createTicket，返回結果給 LLM
  *     │
  *     ▼
- * 原本阻塞中的 POST /api/chat 解除，LLM 回覆：「ticket 已成功建立」
+ * 原本阻塞中的 POST /api/helpdesk/chat 解除，LLM 回覆：「ticket 已成功建立」
  * </pre>
  */
 @Slf4j
@@ -121,7 +121,7 @@ public class HelpDeskElicitationProvider {
          *
          *   使用者輸入：「HIGH，0912-345-678」
          *       │
-         *       ▼  POST /api/chat → LLM 解析 → Map
+         *       ▼  POST /api/helpdesk/chat → LLM 解析 → Map
          *       │
          *       │  complete(sessionId, {"priority":"HIGH","contactPhone":"0912-345-678"})
          *       ▼
@@ -168,7 +168,7 @@ public class HelpDeskElicitationProvider {
          *       │
          *       ▼  Tomcat 分配另一條 thread 處理這個 HTTP 請求
          *
-         *   McpHelpdeskController.chat()
+         *   HelpDeskController.chat()
          *       │
          *       ├─ 以 sessionId + username 找到正確 pending session
          *       ├─ parserClient + LLM → 解析出 {"priority":"HIGH","contactPhone":"0912-345-678"}
@@ -191,7 +191,7 @@ public class HelpDeskElicitationProvider {
 
         try {
             // 步驟 3：阻塞此 thread 等待使用者輸入，最多等 5 分鐘。
-            // 當使用者在聊天框送出回應後，McpClientController 會呼叫
+            // 當使用者在聊天框送出回應後，HelpDeskController 會呼叫
             // ElicitationSessionStore.complete()，解除此處的阻塞並取得資料。
             Map<String, Object> userInput = responseFuture.get(5, TimeUnit.MINUTES);
 

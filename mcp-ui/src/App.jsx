@@ -1,9 +1,10 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import Navbar from './components/Navbar'
-import { UsernameProvider } from './context/UsernameContext'
-import HelpdeskPage from './pages/HelpdeskPage'
-import McpChatPage from './pages/McpChatPage'
-import './App.css'
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import { UsernameProvider } from "./context/UsernameContext";
+import HelpdeskChatPage from "./pages/HelpdeskChatPage";
+import FileSystemChatPage from "./pages/FileSystemChatPage";
+import GithubChatPage from "./pages/GithubChatPage";
+import "./App.css";
 
 export default function App() {
   return (
@@ -12,12 +13,16 @@ export default function App() {
         <Navbar />
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<Navigate to="/helpdesk" replace />} />
-            <Route path="/helpdesk" element={<HelpdeskPage />} />
-            <Route path="/mcp-chat" element={<McpChatPage />} />
+            <Route
+              path="/"
+              element={<Navigate to="/helpdesk-chat" replace />}
+            />
+            <Route path="/helpdesk-chat" element={<HelpdeskChatPage />} />
+            <Route path="/filesystem-chat" element={<FileSystemChatPage />} />
+            <Route path="/github-chat" element={<GithubChatPage />} />
           </Routes>
         </main>
       </BrowserRouter>
     </UsernameProvider>
-  )
+  );
 }

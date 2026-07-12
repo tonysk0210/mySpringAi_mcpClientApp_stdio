@@ -15,13 +15,13 @@ import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class McpHelpdeskControllerTest {
+class HelpDeskControllerTest {
 
     @Test
     void cancelElicitationReturnsOkThenNotFound() {
         ElicitationSessionStore sessionStore = new ElicitationSessionStore();
         String sessionId = sessionStore.register(mock(McpSchema.ElicitRequest.class), "Annie");
-        McpHelpdeskController controller = newController(sessionStore);
+        HelpDeskController controller = newController(sessionStore);
 
         ResponseEntity<String> wrongOwner = controller.cancelElicitation(sessionId, "Bob");
         ResponseEntity<String> first = controller.cancelElicitation(sessionId, "Annie");
@@ -32,13 +32,13 @@ class McpHelpdeskControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, second.getStatusCode());
     }
 
-    private McpHelpdeskController newController(ElicitationSessionStore sessionStore) {
+    private HelpDeskController newController(ElicitationSessionStore sessionStore) {
         ChatClient.Builder chatClientBuilder = mock(ChatClient.Builder.class, RETURNS_SELF);
         ChatClient.Builder parserClientBuilder = mock(ChatClient.Builder.class, RETURNS_SELF);
         when(chatClientBuilder.build()).thenReturn(mock(ChatClient.class));
         when(parserClientBuilder.build()).thenReturn(mock(ChatClient.class));
 
-        return new McpHelpdeskController(
+        return new HelpDeskController(
                 chatClientBuilder,
                 parserClientBuilder,
                 List.of(),

@@ -15,7 +15,11 @@
       "Bash(npx ctx7@latest *)",
       "Bash(jar -tf \"%USERPROFILE%\\\\.m2\\\\repository\\\\org\\\\springframework\\\\ai\\\\spring-ai-autoconfigure-mcp-client-common\\\\2.0.0\\\\spring-ai-autoconfigure-mcp-client-common-2.0.0.jar\")",
       "Bash(findstr /i \"customizer\")",
-      "Bash(jar -tf \"C:\\\\Users\\\\tony.shangkuan\\\\.m2\\\\repository\\\\org\\\\springframework\\\\ai\\\\spring-ai-autoconfigure-mcp-client-common\\\\2.0.0\\\\spring-ai-autoconfigure-mcp-client-common-2.0.0.jar\")"
+      "Bash(jar -tf \"C:\\\\Users\\\\tony.shangkuan\\\\.m2\\\\repository\\\\org\\\\springframework\\\\ai\\\\spring-ai-autoconfigure-mcp-client-common\\\\2.0.0\\\\spring-ai-autoconfigure-mcp-client-common-2.0.0.jar\")",
+      "Bash(git mv *)",
+      "Bash(.\\\\mvnw.cmd -q -DskipTests compile)",
+      "PowerShell(.\\\\mvnw.cmd -q -DskipTests compile 2>&1 | Select-Object -Last 30)",
+      "PowerShell(.\\\\mvnw.cmd -q \"-Dtest=HelpDeskControllerTest\" test 2>&1 | Select-Object -Last 30)"
     ]
   }
 }

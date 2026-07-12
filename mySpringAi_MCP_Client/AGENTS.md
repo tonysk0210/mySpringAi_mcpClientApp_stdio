@@ -17,6 +17,12 @@
 
 Java 使用 4 個空白縮排、同一行左大括號，套件名稱全小寫。類別採 `PascalCase`，方法與欄位採 `camelCase`，常數採 `UPPER_SNAKE_CASE`。Controller 保持端點協調職責，共用 MCP 流程放入 `util/`；優先使用 constructor injection。專案目前未設定獨立 formatter 或 linter，提交前請沿用鄰近程式碼的 import 分組、Javadoc 與繁體中文使用者訊息風格。
 
+## Agent 操作偏好
+
+回覆使用繁體中文。進行 CLI 或程式碼搜尋時，先判斷最小有效搜尋範圍，並優先使用 `rg`；若 `rg` 不可用，再改用 PowerShell 的 `Get-ChildItem`、`Select-String` 或 `Get-Content`。搜尋時先限制目錄、檔名或副檔名，避免不必要的全域掃描。
+
+使用者詢問 library、framework、SDK、API、CLI tool 或 cloud service 的最新用法、設定、版本遷移或除錯時，使用 Context7。先以官方名稱與完整問題執行 `npx ctx7@latest library <name> "<question>"`，依 exact match、描述、snippet 數、來源可信度與 benchmark 分數選出 `/org/project` ID；除非使用者已提供有效 ID，否則不得跳過 library 查詢。接著執行 `npx ctx7@latest docs <libraryId> "<question>"` 取得文件後回答；跨多個概念時分開查 docs，但每題最多 3 個 Context7 指令。Context7 指令需在 Codex 預設 sandbox 外執行；若遇到 DNS、host resolution 或 fetch failed，改在 sandbox 外重跑。若遇到 quota 錯誤，請告知需 `npx ctx7@latest login` 或設定 `CONTEXT7_API_KEY`。重構、商業邏輯除錯、code review 或一般程式概念不需使用 Context7。
+
 ## 測試規範
 
 測試使用 JUnit 5、Mockito 與 Spring Boot test starter。測試類別命名為 `<ClassName>Test`，方法名稱應描述行為與預期，例如 `cancelRemovesSessionAndCancelsWaitingFuture`。修改 session ownership、tool selection、elicitation 或 controller 狀態碼時，須加入正常與拒絕／不存在案例。專案目前沒有硬性覆蓋率門檻；每次 PR 至少應通過 `mvn clean test`。
