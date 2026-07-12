@@ -10,6 +10,10 @@
 
 不要編輯 `node_modules/`、`dist/` 或 Maven `target/` output。模組專屬變更應留在真正擁有該行為的模組內。
 
+## 架構概覽
+
+`mySpringAi_MCP_Server_stdio/` 提供 helpdesk MCP tools 與資料存取，`mySpringAi_MCP_Client/` 負責連接 MCP server、呼叫 Spring AI model、處理 elicitation/progress/sampling 流程，`mcp-ui/` 則透過 HTTP/SSE 顯示 chat 與互動狀態。追查問題時請先判斷責任屬於 server、client 或 UI。
+
 ## 建置、測試與開發指令
 
 請在對應模組目錄執行指令：
