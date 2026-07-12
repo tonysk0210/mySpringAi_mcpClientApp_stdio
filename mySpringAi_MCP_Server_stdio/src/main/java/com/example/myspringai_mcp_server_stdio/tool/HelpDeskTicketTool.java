@@ -69,7 +69,9 @@ public class HelpDeskTicketTool {
 
             // 1.1 請求使用者提供「優先等級」及「聯絡電話」
             StructuredElicitResult<TicketContactInfo> elicitResult = ctx.elicit( // ② — 暫停執行，把問題送給 client，等使用者回答
-                    spec -> spec.message("在開立服務工單之前，請選擇優先等級（LOW、MEDIUM、HIGH 或 URGENT），並提供聯絡電話，以便我們的團隊與您聯繫；若不方便提供，可按下右下角的取消鍵，系統將以預設優先等級 MEDIUM 繼續開立工單。"),
+                    spec -> spec
+                            .message("在開立服務工單之前，請選擇優先等級（LOW、MEDIUM、HIGH 或 URGENT），並提供聯絡電話，以便我們的團隊與您聯繫；若不方便提供，可按下右下角的取消鍵，系統將以預設優先等級 MEDIUM 繼續開立工單。")
+                            .meta("username", username),
                     TicketContactInfo.class); // ③ — Spring AI 根據這個 record 自動產生問卷 schema 給 client
 
             log.info("Elicitation 已完成，使用者操作：{}", elicitResult.action());

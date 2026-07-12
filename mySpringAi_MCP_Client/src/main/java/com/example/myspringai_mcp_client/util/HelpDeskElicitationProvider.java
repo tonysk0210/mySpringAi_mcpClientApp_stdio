@@ -7,6 +7,9 @@ import org.springframework.ai.mcp.annotation.McpElicitation;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -20,7 +23,7 @@ import java.util.concurrent.TimeoutException;
  *
  * <p><b>完整互動流程：</b>
  * <pre>
- * 使用者：「幫我建一張 ticket」 → POST /api/chat
+ * 使用者：「幫我建一張 ticket」 → POST /api/helpdesk/chat
  *     │
  *     ▼  LLM 決定呼叫 createTicket tool
  * MCP server 執行 tool，發現缺少 priority 和 contactPhone
@@ -33,7 +36,7 @@ import java.util.concurrent.TimeoutException;
  *     └─ 3. CompletableFuture.get()：阻塞此 thread，等待使用者在聊天框輸入
  *                     │
  *                     │  使用者看到提示後，在聊天框輸入補充資料並送出
- *                     │  POST /api/chat → McpClientController.handleElicitationChatResponse()
+ *                     │  POST /api/helpdesk/chat → McpHelpdeskController.handleElicitationChatResponse()
  *                     │  用 LLM 解析使用者輸入 → ElicitationSessionStore.complete()
  *                     ▼
  *     CompletableFuture 解除阻塞，取得解析好的資料 Map
@@ -49,6 +52,8 @@ import java.util.concurrent.TimeoutException;
 @Component
 @RequiredArgsConstructor
 public class HelpDeskElicitationProvider {
+
+    private static final String OWNER_META_KEY = "username";
 
     private final ElicitationSessionStore sessionStore;
     private final ElicitationSseService sseService;
@@ -72,18 +77,29 @@ public class HelpDeskElicitationProvider {
      * @return {@link McpSchema.ElicitResult}，三種 Action：
      * <ul>
      *   <li>{@code ACCEPT} - 使用者成功提交資料，附上解析好的 Map 回傳給 server</li>
-     *   <li>{@code CANCEL} - 等待逾時（超過 5 分鐘無回應），server 可選擇終止或降級處理</li>
+     *   <li>{@code CANCEL} - 使用者主動取消或等待逾時，server 可選擇終止或降級處理</li>
      *   <li>{@code DECLINE} - 發生例外，通知 server 本次 elicitation 失敗</li>
      * </ul>
      */
     @McpElicitation(clients = "helpdesk-ticket-mcp-server-stdio")
     public McpSchema.ElicitResult handleElicitationRequest(McpSchema.ElicitRequest request) {
 
+        // 步驟 0：檢查 request.meta 中的 owner。
+        String owner = request.meta() == null
+                ? ""
+                : Objects.toString(request.meta().get(OWNER_META_KEY), "").trim();
+
+        if (owner.isBlank()) {
+            log.error("Elicitation 缺少 owner metadata，回傳 DECLINE");
+            return McpSchema.ElicitResult.builder(McpSchema.ElicitResult.Action.DECLINE).build();
+        }
+
         // 步驟 1：在 SessionStore 建立一個新的 session。
         // 內部產生唯一 sessionId 並建立 CompletableFuture，
-        // 後續的 hasPending() 檢查就是看這裡有沒有未完成的 session。
-        String sessionId = sessionStore.register(request);
-        log.info("Elicitation session 已建立，等待使用者在聊天框輸入 sessionId={}", sessionId);
+        // session 同時保存 owner，後續提交與取消都必須以 sessionId + owner 驗證。
+        String sessionId = sessionStore.register(request, owner);
+        CompletableFuture<Map<String, Object>> responseFuture = sessionStore.getFuture(sessionId);
+        log.info("Elicitation session 已建立，等待使用者在聊天框輸入 owner={} sessionId={}", owner, sessionId);
 
         // 步驟 2：透過 SSE 把提示訊息和欄位 schema 推送給前端聊天框。
         // ElicitRequest 是 interface，requestedSchema() 只存在於 ElicitFormRequest（表單模式）。
@@ -91,11 +107,11 @@ public class HelpDeskElicitationProvider {
         Map<String, Object> schema = (request instanceof McpSchema.ElicitFormRequest formRequest)
                 ? formRequest.requestedSchema()
                 : Map.of();
-        sseService.push(sessionId, request.message(), schema); // 推送的是「問題」：需要填哪些欄位
+        sseService.push(owner, sessionId, request.message(), schema); // 只推送給此 elicitation 的 owner
 
         // sseService.push 到 sessionStore.getFuture 的簡易流程
         /**
-         *   sseService.push(sessionId, message, schema)
+         *   sseService.push(owner, sessionId, message, schema)
          *       │
          *       │  推送的是「問題」：需要填哪些欄位
          *       ▼
@@ -124,7 +140,7 @@ public class HelpDeskElicitationProvider {
          *   handleElicitationRequest() thread（被 MCP framework 呼叫，Spring thread pool）
          *   ────────────────────────────────────────────────────────────────────────────────
          *
-         *   sseService.push(sessionId, message, schema)
+         *   sseService.push(owner, sessionId, message, schema)
          *       │
          *       │  透過 SSE 長連線，把 elicitation 事件推送到瀏覽器
          *       │  （push() 本身是非同步的，呼叫完立刻返回，不等瀏覽器）
@@ -148,13 +164,13 @@ public class HelpDeskElicitationProvider {
          *
          *   使用者看到提示，輸入「HIGH，0912-345-678」按 Enter
          *
-         *   瀏覽器發出第二次 POST /api/chat（message = "HIGH，0912-345-678"）
+         *   瀏覽器發出第二次 POST /api/helpdesk/chat（帶 sessionId 與補充資料）
          *       │
          *       ▼  Tomcat 分配另一條 thread 處理這個 HTTP 請求
          *
-         *   McpClientController.chat()
+         *   McpHelpdeskController.chat()
          *       │
-         *       ├─ hasPending() = true → 進入 handleElicitationChatResponse()
+         *       ├─ 以 sessionId + username 找到正確 pending session
          *       ├─ parserClient + LLM → 解析出 {"priority":"HIGH","contactPhone":"0912-345-678"}
          *       └─ sessionStore.complete(sessionId, data)
          *               │
@@ -177,18 +193,22 @@ public class HelpDeskElicitationProvider {
             // 步驟 3：阻塞此 thread 等待使用者輸入，最多等 5 分鐘。
             // 當使用者在聊天框送出回應後，McpClientController 會呼叫
             // ElicitationSessionStore.complete()，解除此處的阻塞並取得資料。
-            Map<String, Object> userInput = sessionStore.getFuture(sessionId) // 等到的是「答案」：使用者填入的值
-                    .get(5, TimeUnit.MINUTES);
+            Map<String, Object> userInput = responseFuture.get(5, TimeUnit.MINUTES);
 
             log.info("Elicitation 收到使用者資料，回傳 ACCEPT sessionId={} data={}", sessionId, userInput);
             return McpSchema.ElicitResult.builder(McpSchema.ElicitResult.Action.ACCEPT)
                     .content(userInput)
                     .build();
 
+        } catch (CancellationException e) {
+            // 使用者按下取消鍵，明確以 MCP CANCEL 回覆 server。
+            log.info("使用者取消 Elicitation，回傳 CANCEL sessionId={}", sessionId);
+            return McpSchema.ElicitResult.builder(McpSchema.ElicitResult.Action.CANCEL).build();
+
         } catch (TimeoutException e) {
             // 使用者 5 分鐘內未回應，主動取消 session 並告知 server
             log.warn("Elicitation 等待逾時（5 分鐘），回傳 CANCEL sessionId={}", sessionId);
-            sessionStore.cancel(sessionId);
+            sessionStore.expire(sessionId);
             return McpSchema.ElicitResult.builder(McpSchema.ElicitResult.Action.CANCEL).build();
 
         } catch (Exception e) {
