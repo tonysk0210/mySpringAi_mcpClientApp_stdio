@@ -1,14 +1,35 @@
 # mySpringAi_mcpClientApp_stdio
 
-> Spring AI 2.0 × Model Context Protocol (MCP) over stdio — 全端示範專案
+> Spring AI 2.0 × Model Context Protocol (MCP) over stdio — **AI Help Desk 客服**全端示範專案
 
-一個 end-to-end 的 MCP 示範 monorepo，展示：
+**24 小時不打烊、不用排隊、對答如流的智慧客服——就在一個聊天視窗裡。**
 
-1. 如何用 **Spring AI** 寫一個 MCP Server（stdio transport）
-2. 如何用 **Spring AI** 寫一個 MCP Client，同時串接多個 MCP Servers（`filesystem` / `github` / 自製 `helpdesk`）
-3. 如何用 **React SPA** 消費這個 Client 的 REST + SSE API，並實作真實的 **elicitation** 流程（工具執行中暫停，向使用者索取補充資料）
+想像你是深夜遇到系統問題的使用者。過去，你只能填一張冷冰冰的工單表格，勾選下拉選單、填聯絡電話、寫問題描述，然後等隔天上班的客服回覆。
 
-> 程式碼註解、UI 文字、log 訊息一律使用**繁體中文**。
+現在，打開瀏覽器，對著聊天框說：
+
+> 「我 Outlook 從早上開始就登不進去，一直跳 0x800CCC0E，很急。」
+
+**AI Help Desk 客服**會在同一個對話框裡：
+
+- 🧠 **像資深客服一樣先幫你自助排障** —— 從歷史已結案工單庫中比對類似案例，回你一份具體的排除步驟建議（Sampling 能力）
+- ❓ **少什麼資料就主動反問** —— 「請問這件事的急迫程度？聯絡電話是？」——**不是**丟一張表單給你填，而是像真人一樣一句一句自然地問（**Elicitation** 能力）
+- 📊 **執行中隨時回報進度** —— 「工單建立中… 30%… 60%… 完成」，讓使用者知道系統沒卡死（Progress 能力）
+- 🎫 **問完就直接幫你開工單存進資料庫**，並回傳工單編號
+
+整個過程沒有表單、沒有選單、沒有等待——**一個聊天視窗，把真人客服的體驗完整搬過來，並且 7×24 隨時待命**。
+
+這就是 **MCP（Model Context Protocol）** 加上 Spring AI 的價值：把 LLM 從「只會聊天」升級成「真的能操作內部系統」的**智慧客服 Agent**。
+
+## 這個 repo 給你什麼
+
+一個完整可跑的 AI Help Desk 客服系統，並把每一層的做法都攤開給你看：
+
+1. **後端 MCP Server（Spring AI）** —— 用 `@McpTool` 把「建工單 / 查工單狀態 / 自助排障」三個客服流程做成 AI 可呼叫的工具，資料存 H2
+2. **後端 MCP Client（Spring AI）** —— 讓 LLM 能主動呼叫上面這些工具，並協調三大關鍵能力：Elicitation（反問）、Progress（進度）、Sampling（借 LLM 排障）
+3. **前端 React 聊天視窗** —— 純聊天 UI + SSE 長連線，讓 elicitation 的「主動反問」可以像真人對話一樣即時往返
+
+另外還額外串接了 `filesystem` 與 `github` 兩個公開 MCP servers，展示同一套聊天框可以無縫擴充成任意領域的 AI Agent 介面。
 
 ---
 
