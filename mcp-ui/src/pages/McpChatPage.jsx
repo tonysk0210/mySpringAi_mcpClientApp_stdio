@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ChatBox from '../components/ChatBox'
 import { useUsername } from '../context/UsernameContext'
+import client from '../api/client'
 
 export default function McpChatPage() {
   const { username } = useUsername()
@@ -13,24 +14,22 @@ export default function McpChatPage() {
     setIsLoading(true)
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', username },
-        body: JSON.stringify({ message: text }),
-      })
-      const rawText = await res.text()
-      console.log('[MCP Chat] status:', res.status, '| reply:', rawText)
-
-      if (!res.ok) {
-        setMessages(prev => [...prev, { role: 'assistant', content: `❌ 伺服器錯誤 (${res.status})：${rawText || '無詳細資訊'}` }])
-        return
-      }
-
-      const reply = rawText.trim() || '（伺服器回傳空回應，請確認 Spring AI 設定與 OpenAI API Key）'
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }])
+      const { data } = await client.post('/chat',
+        { message: text },
+        { headers: { username } }
+      )
+      const reply = (data ?? '').toString().trim()
+      console.log('[MCP Chat] reply:', reply)
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: reply || '（伺服器回傳空回應，請確認 Spring AI 設定與 OpenAI API Key）',
+      }])
     } catch (e) {
-      console.error('[MCP Chat] fetch error:', e)
-      setMessages(prev => [...prev, { role: 'assistant', content: '❌ 連線錯誤，請確認後端服務是否啟動。' }])
+      console.error('[MCP Chat] error:', e)
+      const content = e.response
+        ? `❌ 伺服器錯誤 (${e.response.status})：${e.response.data || '無詳細資訊'}`
+        : '❌ 連線錯誤，請確認後端服務是否啟動。'
+      setMessages(prev => [...prev, { role: 'assistant', content }])
     } finally {
       setIsLoading(false)
     }

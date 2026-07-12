@@ -311,6 +311,14 @@ public class McpHelpdeskController {
     /**
      * 取消指定的 elicitation session。MCP server 收到 CANCEL 後，
      * 會依目前 createTicket 邏輯使用預設優先等級與聯絡電話繼續建立工單。
+     * <p>
+     * /helpdesk/chat
+     * 用途：一般聊天或提交補充資料
+     * 內容：需要讓後端或 LLM 解析
+     * <p>
+     * /elicitation/{sessionId}/cancel
+     * 用途：明確取消指定 elicitation
+     * 內容：不需解析，不需要 request body
      */
     @PostMapping("/elicitation/{sessionId}/cancel")
     public ResponseEntity<String> cancelElicitation(
