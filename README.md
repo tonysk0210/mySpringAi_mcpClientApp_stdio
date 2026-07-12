@@ -344,12 +344,12 @@ Server 已被打包成 JAR 供 Client 以 stdio 子行程方式使用，因此 *
 
 **連線設定：**
 
-| 欄位 | 值 |
-| --- | --- |
-| JDBC URL | `jdbc:h2:file:./mySpringAi_MCP_Client/h2db/mcpserver_stdio;AUTO_SERVER=TRUE` |
-| Driver | `org.h2.Driver` |
-| Username | `sa` |
-| Password | *（留空）* |
+| 欄位     | 值                                                                            |
+| -------- | ----------------------------------------------------------------------------- |
+| JDBC URL | `jdbc:h2:file:./mySpringAi_MCP_Client/h2db/mcpserver_stdio;AUTO_SERVER=TRUE`  |
+| Driver   | `org.h2.Driver`                                                               |
+| Username | `sa`                                                                          |
+| Password | *（留空）*                                                                    |
 
 `ddl-auto=update`，適合本地開發，正式環境請改用 migration 流程。首次啟動時 `DataInitializer` 會 seed 約 9 筆 `status=CLOSED` 的工單，當作 `troubleshootIssue`（sampling）的知識庫。
 
