@@ -294,7 +294,7 @@ export default function HelpdeskPage() {
   return (
     <div className="page">
       <div className="page-header">
-        <h2>AI 智能工單系統</h2>
+        <h2>智能工單系統 - stdio</h2>
         <p>描述您遇到的技術問題，AI 將協助排障或建立工單。</p>
       </div>
       {!username && (

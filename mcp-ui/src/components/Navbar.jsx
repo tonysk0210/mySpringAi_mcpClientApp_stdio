@@ -33,7 +33,7 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <span className="navbar-logo">MCP Client-App UI Chat</span>
+      <span className="navbar-logo">MCP Client</span>
 
       <div className="navbar-links">
         <NavLink
@@ -42,7 +42,7 @@ export default function Navbar() {
             isActive ? "nav-link active" : "nav-link"
           }
         >
-          AI 智能工單系統 demo
+          智能工單系統 demo
         </NavLink>
         <NavLink
           to="/mcp-chat"
@@ -50,7 +50,7 @@ export default function Navbar() {
             isActive ? "nav-link active" : "nav-link"
           }
         >
-          外接 MCP 工具 demo
+          串接 MCP 工具 demo
         </NavLink>
       </div>
 

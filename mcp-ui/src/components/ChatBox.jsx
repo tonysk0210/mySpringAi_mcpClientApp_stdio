@@ -53,7 +53,7 @@ export default function ChatBox({
           <div key={i} className={`bubble-row ${msg.role}`}>
             <div className="bubble">
               <span className="bubble-role">
-                {msg.role === "user" ? "您" : "AI 人工客服"}
+                {msg.role === "user" ? "您" : "AI Agent"}
               </span>
               <p className={msg.variant ? `msg-${msg.variant}` : ""}>
                 {msg.content}
@@ -65,7 +65,7 @@ export default function ChatBox({
         {isLoading && (
           <div className="bubble-row assistant">
             <div className="bubble loading">
-              <span className="bubble-role">AI 人工客服 正在回覆中...</span>
+              <span className="bubble-role">AI Agent 正在回覆中...</span>
               <span className="dots">
                 <span />
                 <span />
