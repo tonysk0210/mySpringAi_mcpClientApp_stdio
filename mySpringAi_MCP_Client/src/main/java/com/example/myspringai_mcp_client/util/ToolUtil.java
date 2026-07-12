@@ -1,6 +1,7 @@
 package com.example.myspringai_mcp_client.util;
 
 import io.modelcontextprotocol.client.McpSyncClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.mcp.SyncMcpToolCallback;
 import org.springframework.ai.tool.ToolCallback;
 
@@ -19,6 +20,7 @@ import java.util.List;
  * {@code McpServerToolFilter} 是全域封鎖，影響所有 request。<br>
  * 這個 helper 是 per-request 精準選取，不影響其他 request 的工具清單。
  */
+@Slf4j
 public class ToolUtil {
 
     /**
@@ -39,7 +41,7 @@ public class ToolUtil {
      */
     public static ToolCallback[] selectToolsFor(List<McpSyncClient> mcpClients, String serverName, String toolName) {
 
-        return mcpClients.stream()
+        ToolCallback[] callbacks = mcpClients.stream()
                 // 步驟 1：對每個 MCP server client，取出它所有的 tool，攤平成單一 tool stream。
                 //         每個 client 對應一個 MCP server（例如 filesystem、github、helpdesk）。
                 .flatMap(client -> client.listTools().tools().stream()
@@ -52,12 +54,20 @@ public class ToolUtil {
                         // 步驟 3：把 MCP 原生 tool 包裝成 Spring AI 的 ToolCallback。
                         //         SyncMcpToolCallback 是 Spring AI 提供的橋接器，
                         //         讓 LLM 可以透過 Spring AI 的 tool call 機制去呼叫 MCP tool。
-                        .map(tool -> (ToolCallback) SyncMcpToolCallback.builder()
-                                .mcpClient(client)
-                                .tool(tool)
-                                .build()))
+                        .map(tool -> {
+                            log.info("ToolUtil - MCP tool 已開放：server='{}' tool='{}'",
+                                    client.getServerInfo().name(), tool.name());
+                            return (ToolCallback) SyncMcpToolCallback.builder()
+                                    .mcpClient(client)
+                                    .tool(tool)
+                                    .build();
+                        }))
                 // 步驟 4：收集成陣列，供 .tools(toolCallbacks) 使用。
                 .toArray(ToolCallback[]::new);
+
+        log.info("ToolUtil.selectToolsFor(serverName='{}', toolName='{}') 共開放 {} 個 tools",
+                serverName, toolName, callbacks.length);
+        return callbacks;
     }
 
     // //////////////////////////////////////////

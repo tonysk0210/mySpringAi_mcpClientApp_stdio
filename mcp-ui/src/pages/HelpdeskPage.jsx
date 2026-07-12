@@ -12,17 +12,33 @@ import client from "../api/client";
 
 export default function HelpdeskPage() {
   const { username } = useUsername(); // 從 Context 取得目前的使用者名稱
-  const [messages, setMessages] = useState([]); // 所有對話紀錄
+  const [messages, setMessages] = useState(() => [
+    {
+      role: "assistant",
+      content:
+        "嗨！我是 IT Helpdesk 智能助理 👋\n\n" +
+        "無論是電腦當機、網路異常，還是軟體錯誤，都可以直接告訴我，我會：\n" +
+        "• 先協助您排查可能原因\n" +
+        "• 查詢您手上有沒有進行中的工單\n" +
+        "• 如果問題比較複雜，替您建立新工單追蹤\n\n" +
+        "途中我可能會請您補充一些資訊(例如問題緊急程度)，請放心告訴我，隨時開始吧！",
+    },
+  ]); // 所有對話紀錄
   const [isLoading, setIsLoading] = useState(false); // true = AI 正在思考，聊天框鎖住
   const [isEliciting, setIsEliciting] = useState(false); // true = 後端要求補充資料，輸入框解鎖
   const [elicitationSessionId, setElicitationSessionId] = useState(null); // 目前等待回覆的 elicitation session
+  // "idle" 未有 username 或尚未嘗試連線；"connecting" 建立中；"connected" 已 open；"disconnected" 中斷等待重連
+  const [sseStatus, setSseStatus] = useState("idle");
   const esRef = useRef(null); // 保存 SSE 連線
   const seenElicitationSessionsRef = useRef(new Set()); // 記錄哪些 sessionId 已處理過
 
   // ### 1. SSE 長連線 (username 改變時重新建立連線，後端因此知道這條 SSE connection 屬於哪個使用者。)
   useEffect(() => {
     // ### 2. 沒有 username 就不連線
-    if (!username) return undefined;
+    if (!username) {
+      setSseStatus("idle");
+      return undefined;
+    }
 
     // ### 3. 標記 component 還存在
     let active = true;
@@ -36,6 +52,9 @@ export default function HelpdeskPage() {
       // ### 7. 避免重複連線
       if (!active || esRef.current) return;
 
+      // 進入連線流程，同步狀態給 UI 指示燈
+      setSseStatus("connecting");
+
       // ### 8. 建立 SSE 連線，與後端保持連線，前端提供 username 作為識別，後端用來區分不同使用者的連線
       const es = new EventSource(
         `/api/helpdesk/elicitation/stream?username=${encodeURIComponent(username)}`,
@@ -45,7 +64,10 @@ export default function HelpdeskPage() {
       esRef.current = es;
 
       // ### 10. 連線開啟時 console 輸出
-      es.onopen = () => console.log(`[SSE] connected username=${username}`);
+      es.onopen = () => {
+        console.log(`[SSE] connected username=${username}`);
+        setSseStatus("connected");
+      };
 
       // ### 11. 監聽後端推送的 elicitation 事件
       es.addEventListener("elicitation", (e) => {
@@ -88,6 +110,7 @@ export default function HelpdeskPage() {
         if (!active || esRef.current !== es) return;
 
         console.warn("[SSE] 連線中斷，2 秒後重連...");
+        setSseStatus("disconnected");
 
         // ### 21. 關閉中斷的 EventSource，並清除 ref，讓 connect() 可以建立新連線
         es.close();
@@ -112,6 +135,7 @@ export default function HelpdeskPage() {
       clearTimeout(retryTimer);
       esRef.current?.close();
       esRef.current = null;
+      setSseStatus("idle");
     };
   }, [username]); // ### 25. Username 改變時，先執行 cleanup，再重新執行這個 useEffect
 
@@ -294,7 +318,10 @@ export default function HelpdeskPage() {
   return (
     <div className="page">
       <div className="page-header">
-        <h2>智能工單系統 - stdio</h2>
+        <div className="page-header-row">
+          <h2>智能工單系統 - stdio</h2>
+          <SseStatusBadge status={sseStatus} />
+        </div>
         <p>描述您遇到的技術問題，AI 將協助排障或建立工單。</p>
       </div>
       {!username && (
@@ -308,11 +335,39 @@ export default function HelpdeskPage() {
         onCancel={handleCancel}
         isLoading={isLoading}
         allowSendWhileLoading={isEliciting}
-        disabled={!username}
+        disabled={!username || sseStatus !== "connected"}
         placeholder={
           isEliciting ? "請回覆上方補充資料的問題..." : "描述您的技術問題..."
         }
       />
+    </div>
+  );
+}
+
+// SSE 連線狀態指示燈 (dot + label + 簡短說明)，顯示於 page-header 右側
+function SseStatusBadge({ status }) {
+  const label = {
+    idle: "未連線",
+    connecting: "連線中...",
+    connected: "已連線",
+    disconnected: "連線中斷，重試中...",
+  }[status];
+  const hint = {
+    idle: "設定使用者名稱後自動建立 SSE 即時通道",
+    connecting: "正在建立 SSE 即時通道，請稍候...",
+    connected: "SSE 即時通道已就緒，可傳送訊息",
+    disconnected: "無法送出訊息，系統將自動重試 SSE 連線",
+  }[status];
+  return (
+    <div className="sse-status-wrap">
+      <span
+        className={`sse-status sse-status--${status}`}
+        title="AI Agent 需透過即時通道推送補充資料的追問，連線建立後才能開始對話。"
+      >
+        <span className="sse-status-dot" />
+        {label}
+      </span>
+      <small className="sse-status-hint">{hint}</small>
     </div>
   );
 }

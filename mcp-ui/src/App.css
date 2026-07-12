@@ -310,3 +310,61 @@ body {
   color: #fff;
   border-color: #dc2626;
 }
+
+/* ── SSE status badge ── */
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sse-status-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sse-status-hint {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.3;
+  cursor: help;
+}
+
+.sse-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #f3f4f6;
+  color: #374151;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.sse-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.sse-status--connected { background: #dcfce7; color: #15803d; }
+.sse-status--connecting { background: #fef3c7; color: #b45309; }
+.sse-status--disconnected { background: #fee2e2; color: #b91c1c; }
+.sse-status--idle { background: #f3f4f6; color: #6b7280; }
+
+.sse-status--connecting .sse-status-dot {
+  animation: sse-pulse 1s ease-in-out infinite;
+}
+
+@keyframes sse-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}

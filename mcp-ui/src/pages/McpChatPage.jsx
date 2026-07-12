@@ -5,7 +5,17 @@ import client from "../api/client";
 
 export default function McpChatPage() {
   const { username } = useUsername();
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => [
+    {
+      role: "assistant",
+      content:
+        "嗨！我是 MCP 工具操作助理 👋\n\n" +
+        "只要用自然語言告訴我想做的事，我可以幫您：\n" +
+        "• 操作檔案系統，例如列出、讀取指定目錄的檔案\n" +
+        "• 操作 GitHub，例如查詢 repository、issue、commit 等\n\n" +
+        "有任何想試試的動作，直接說出來就可以，我們開始吧！",
+    },
+  ]);
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSend(text) {
